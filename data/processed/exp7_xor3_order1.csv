@@ -1,0 +1,11 @@
+feature,delta_mean,delta_std,role
+X1,-0.0036,,informative
+X10,0.0069,,noise
+X2,-0.0049,,informative
+X3,0.0011,,informative
+X4,0.0044,,noise
+X5,0.0012,,noise
+X6,-0.0016,,noise
+X7,-0.0015,,noise
+X8,0.007,,noise
+X9,-0.0092,,noise

@@ -1,0 +1,22 @@
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# LaTeX build products
+*.aux
+*.bbl
+*.blg
+*.fdb_latexmk
+*.fls
+*.log
+*.out
+*.synctex.gz
+
+# Generated large CSVs. Versioned compressed copies live in data/large_archives/.
+data/processed/null_swap_order3_logreg.csv
+data/processed/null_swap_order3_v2.csv
+
+# Local scratch outputs
+tmp/
+scratch/
