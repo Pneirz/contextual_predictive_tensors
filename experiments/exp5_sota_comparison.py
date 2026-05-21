@@ -8,6 +8,7 @@ data/exp5_makeclf_comparison.csv.
 
 from __future__ import annotations
 
+import os
 from pathlib import Path
 
 import numpy as np
@@ -101,10 +102,11 @@ def run_mrmr(X: np.ndarray, y: np.ndarray, feature_names: list[str]) -> np.ndarr
         pd.DataFrame(X, columns=feature_names),
         pd.Series(y),
         K=p,
+        n_jobs=int(os.environ.get("NULL_SWAP_N_JOBS", "1")),
     )
     # Convert rank to score: rank-1 feature gets score p, last gets score 1
     rank_score = {feat: p - i for i, feat in enumerate(ranked)}
-    # Features not ranked by mRMR (MI ≈ 0 after stop) get score 0
+    # Features not ranked by mRMR (MI approximately 0 after stop) get score 0.
     return np.array([rank_score.get(f, 0.0) for f in feature_names], dtype=float)
 
 

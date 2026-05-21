@@ -1,9 +1,9 @@
 feature,role,in_C,in_I_expected,ATE_do,MI_marginal,NS_delta_order1
-X1,confounder_proxy,False,True,-0.0016,0.0613,0.0315
-X2,confounder_proxy,False,True,-0.0016,0.0604,0.03
-X3,true_cause,True,True,0.5187,0.1284,0.0617
-X4,redundant_proxy,False,True,-0.0016,0.1242,0.0611
-X5,noise,False,False,-0.0016,0.0,0.0001
-X6,noise,False,False,-0.0016,0.0,0.0001
-X7,noise,False,False,-0.0016,0.0,0.0001
-X8,noise,False,False,-0.0016,0.0,0.0001
+X1,confounder_proxy,False,True,0.0004,0.074,0.035
+X2,confounder_proxy,False,True,0.0,0.0731,0.0354
+X3,true_cause,True,True,0.5207,0.1196,0.0573
+X4,redundant_proxy,False,True,0.0007,0.1192,0.0567
+X5,noise,False,False,-0.0003,0.0014,0.0
+X6,noise,False,False,-0.0013,0.001,0.0
+X7,noise,False,False,0.0,0.0017,0.0
+X8,noise,False,False,-0.0008,0.001,-0.0

@@ -21,7 +21,7 @@ Analytical limits:
                                = log(2) - 0 = 0.6931...
 
 The experiment reports both deltas at increasing n and compares them to:
-  - True CMI = log(2) ≈ 0.6931
+  - True CMI = log(2) ~= 0.6931
   - RMSE analytical limit = 0.5
 """
 
@@ -43,7 +43,7 @@ _DATA_DIR.mkdir(parents=True, exist_ok=True)
 RANDOM_SEED = 42
 P = 4
 FEATURE_NAMES = ["X1", "X2", "X3", "X4"]
-TRUE_CMI = float(np.log(2))          # log(2) nats ≈ 0.6931
+TRUE_CMI = float(np.log(2))          # log(2) nats ~= 0.6931
 RMSE_LIMIT = 0.5                     # analytical RMSE limit for XOR2
 N_REPEATS = 10
 N_FOLDS = 5
@@ -65,7 +65,7 @@ def generate_xor2(n: int, seed: int = RANDOM_SEED) -> tuple[np.ndarray, np.ndarr
 # Core delta computation with pluggable loss
 # ---------------------------------------------------------------------------
 
-def nullswap_delta_with_loss(
+def nullswap_deltas_with_loss(
     X: np.ndarray,
     y: np.ndarray,
     context_idx: int,
@@ -75,8 +75,8 @@ def nullswap_delta_with_loss(
     n_repeats: int = N_REPEATS,
     n_folds: int = N_FOLDS,
     random_seed: int = RANDOM_SEED,
-) -> tuple[float, float]:
-    """Return (mean_delta, std_delta) over repeats x folds.
+) -> list[dict[str, float | int]]:
+    """Return repeat/fold null-swap deltas.
 
     loss : "rmse" or "logloss"
     calibrate : if True, wrap DT in isotonic CalibratedClassifierCV
@@ -84,7 +84,7 @@ def nullswap_delta_with_loss(
     all_cols = [context_idx, target_idx]
     target_col_pos = 1  # target is always at position 1 in the 2-col subset
 
-    fold_deltas: list[float] = []
+    rows: list[dict[str, float | int]] = []
     for repeat in range(n_repeats):
         kf = KFold(n_splits=n_folds, shuffle=True, random_state=random_seed + repeat)
         for fold_num, (tr, te) in enumerate(kf.split(X)):
@@ -127,10 +127,25 @@ def nullswap_delta_with_loss(
                 l_orig = log_loss(y_te, p_orig)
                 l_null = log_loss(y_te, p_null)
 
-            fold_deltas.append(l_null - l_orig)
+            rows.append({
+                "repeat": repeat,
+                "fold": fold_num,
+                "delta": float(l_null - l_orig),
+            })
 
-    arr = np.array(fold_deltas)
-    return float(arr.mean()), float(arr.std())
+    return rows
+
+
+def summarize_raw(raw: pd.DataFrame) -> pd.DataFrame:
+    """Summarize raw Exp 8 fold deltas while preserving old output columns."""
+    return (
+        raw.groupby(["n", "protocol", "loss", "calibrated"], as_index=False)["delta"]
+        .agg(delta_mean="mean", delta_std="std")
+        .assign(
+            delta_mean=lambda df: df["delta_mean"].round(5),
+            delta_std=lambda df: df["delta_std"].round(5),
+        )
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -153,37 +168,47 @@ def run_exp8() -> pd.DataFrame:
         ("DT + log-loss (calibrated)", "logloss", True),
     ]
 
-    rows = []
+    raw_rows = []
     for n in SAMPLE_SIZES:
         print(f"\n  n = {n}")
         X, y = generate_xor2(n)
         for label, loss, calibrate in protocols:
-            mean_d, std_d = nullswap_delta_with_loss(
+            rows = nullswap_deltas_with_loss(
                 X, y,
                 context_idx=CONTEXT_IDX,
                 target_idx=TARGET_IDX,
                 loss=loss,
                 calibrate=calibrate,
             )
-            rows.append({
-                "n": n,
-                "protocol": label,
-                "loss": loss,
-                "calibrated": calibrate,
-                "delta_mean": round(mean_d, 5),
-                "delta_std": round(std_d, 5),
-            })
+            for row in rows:
+                raw_rows.append({
+                    "n": n,
+                    "protocol": label,
+                    "loss": loss,
+                    "calibrated": calibrate,
+                    "context_feature": FEATURE_NAMES[CONTEXT_IDX],
+                    "target_feature": FEATURE_NAMES[TARGET_IDX],
+                    **row,
+                })
+            arr = np.array([row["delta"] for row in rows], dtype=float)
+            mean_d = float(arr.mean())
+            std_d = float(arr.std(ddof=1))
             ref = TRUE_CMI if loss == "logloss" else RMSE_LIMIT
             print(
                 f"    {label:<35}: "
-                f"delta={mean_d:.4f} ± {std_d:.4f}  "
+                f"delta={mean_d:.4f} +/- {std_d:.4f}  "
                 f"(ref={ref:.4f})"
             )
 
-    df = pd.DataFrame(rows)
+    raw = pd.DataFrame(raw_rows)
+    raw_out = _DATA_DIR / "exp8_logloss_consistency_raw.csv"
+    raw.to_csv(raw_out, index=False)
+    print(f"\nSaved: {raw_out}")
+
+    df = summarize_raw(raw)
     out = _DATA_DIR / "exp8_logloss_consistency.csv"
     df.to_csv(out, index=False)
-    print(f"\nSaved: {out}")
+    print(f"Saved: {out}")
 
     # Print pivot summary
     print("\n-- Convergence toward true CMI (log-loss, calibrated) --")
