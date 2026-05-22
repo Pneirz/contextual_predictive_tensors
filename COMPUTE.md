@@ -13,9 +13,9 @@ for reproducing the experiments.
 - Default parallel backend: joblib/loky through scikit-learn-style CPU workers
 
 The full `python experiments/null_swap_order3_tree.py` run with `n_jobs=-1`
-completed in 8557.548 seconds on this environment. The generated CSV is included
-as a compressed archive so reviewers can inspect the output without rerunning
-that expensive stage.
+completed in 2 h 22 min 37.548 s on this environment. The generated CSV is
+included as a compressed archive so reviewers can inspect the output without
+rerunning that expensive stage.
 
 The stronger targeted outer-seed UQ rerun uses
 `experiments/outer_seed_uq_resumable.py`, which writes one CSV chunk per dataset
@@ -27,17 +27,17 @@ ignored by git; the combined 100-seed raw CSV and its summary are versioned.
 | Experiment family | Command | Expected workers | Measurement status |
 | --- | --- | ---: | --- |
 | MONK-1 | `python experiments/null_swap_orders_monks1.py` | CPU, serial in script | 4.953 s locally |
-| Synthetic order-3 tree | `python experiments/null_swap_order3_tree.py` | CPU, up to `n_jobs=-1` | 8557.548 s locally |
-| Synthetic order-3 logistic regression | `python experiments/null_swap_order3_logreg.py` | CPU, up to `n_jobs=-1` | 1963.167 s locally |
-| WDBC tensor | `python experiments/null_swap_orders_wdbc.py` | CPU, up to `n_jobs=-1` | 358.416 s locally |
-| Scalar baselines | `python experiments/exp5_sota_comparison.py` | CPU | 1037.205 s locally |
-| Mixed DGP | `python experiments/exp6_mixed_dgp.py` | CPU, up to `n_jobs=-1` | 1965.972 s locally |
+| Synthetic order-3 tree | `python experiments/null_swap_order3_tree.py` | CPU, up to `n_jobs=-1` | 2 h 22 min 37.548 s locally |
+| Synthetic order-3 logistic regression | `python experiments/null_swap_order3_logreg.py` | CPU, up to `n_jobs=-1` | 32 min 43.167 s locally |
+| WDBC tensor | `python experiments/null_swap_orders_wdbc.py` | CPU, up to `n_jobs=-1` | 5 min 58.416 s locally |
+| Scalar baselines | `python experiments/exp5_sota_comparison.py` | CPU | 17 min 17.205 s locally |
+| Mixed DGP | `python experiments/exp6_mixed_dgp.py` | CPU, up to `n_jobs=-1` | 32 min 45.972 s locally |
 | Mixed DGP UQ summary | `python experiments/summarize_uncertainty.py --files exp6_mixed_dgp_ns_raw.csv --n-bootstrap 2000 --output data/processed/uncertainty_exp6_mixed_dgp.csv` | CPU | 4.827 s locally |
-| XOR3 | `NULL_SWAP_N_JOBS=1 python experiments/exp7_xor3_benchmark.py` | CPU, serial null-swap for sandbox compatibility | 335.730 s locally |
+| XOR3 | `NULL_SWAP_N_JOBS=1 python experiments/exp7_xor3_benchmark.py` | CPU, serial null-swap for sandbox compatibility | 5 min 35.730 s locally |
 | Log-loss convergence | `python experiments/exp8_logloss_consistency.py` | CPU | 8.488 s locally |
 | SCM causal control | `python -c "import sys; sys.path.insert(0, 'experiments'); import exp9_scm_causal_control as e; e.N_JOBS=1; e.run_exp9()"` | CPU, serial null-swap for sandbox compatibility | 18.868 s locally |
-| Outer-seed UQ | `python experiments/outer_seed_uq.py --n-seeds 20` | CPU | 1420.712 s locally |
-| Outer-seed UQ, resumable long run | `python experiments/outer_seed_uq_resumable.py --n-seeds 100` | CPU | 7134.379 s locally |
+| Outer-seed UQ | `python experiments/outer_seed_uq.py --n-seeds 20` | CPU | 23 min 40.712 s locally |
+| Outer-seed UQ, resumable long run | `python experiments/outer_seed_uq_resumable.py --n-seeds 100` | CPU | 1 h 58 min 54.379 s locally |
 | Targeted UQ summary | `python experiments/summarize_uncertainty.py --files null_swap_monks1_raw.csv exp7_xor3_records.csv exp8_logloss_consistency_raw.csv exp9_scm_causal_control_ns_raw.csv --n-bootstrap 2000 --output data/processed/uncertainty_summary.csv` | CPU | 4.099 s locally |
 | Outer-seed UQ summary | `python experiments/summarize_uncertainty.py --files outer_seed_uq_raw.csv --n-bootstrap 2000 --output data/processed/outer_seed_uq_summary.csv` | CPU | 0.546 s locally |
 | Outer-seed UQ long summary | `python experiments/summarize_uncertainty.py --files outer_seed_uq_raw_long.csv --n-bootstrap 5000 --output data/processed/outer_seed_uq_summary_long.csv` | CPU | 3.953 s locally |
