@@ -1,39 +1,14 @@
-"""Experiment 9: SCM causal-control — non-collapse of C, I, and P.
+"""Experiment 9: SCM causal-control, non-collapse of C, I, and P.
 
 Demonstrates concretely that three notions of variable relevance do not coincide:
 
-  C  : causal relevance — does do(Xk=v) change P(Y)?
-  I  : informational relevance — is I(Y; Xk | context) > 0?
-  P  : operational predictivity — does null-swap show a positive delta?
+  C  : causal relevance, does do(Xk=v) change P(Y)?
+  I  : informational relevance, is I(Y; Xk | context) > 0?
+  P  : operational predictivity, does null-swap show a positive delta?
 
-SCM design (p=8 observable variables, 1 latent confounder U):
-
-  U   ~ N(0, 1)                             latent confounder (not in X)
-  X1  = 0.8*U + N(0, 0.36)                  confounder proxy     C: NO  I: YES  P: YES
-  X2  = 0.8*U + N(0, 0.36)                  confounder proxy     C: NO  I: YES  P: YES
-  X3  ~ N(0, 1)                             true direct cause    C: YES I: YES  P: YES
-  X4  = X3 + N(0, 0.01)                     redundant proxy      C: NO  I: YES  P: YES
-  X5..X8 ~ N(0, 1)                          pure noise           C: NO  I: NO   P: NO
-
-  Y   = 1[ 1.0*X3 + 1.0*U + N(0,1) > 0 ]
-
-Interventional ATEs are computed by simulation (cut incoming edges):
-  ATE(Xk) = E[Y | do(Xk=+1)] - E[Y | do(Xk=-1)]
-
-Null-swap scores (P) are order-1 deltas from the empirical contrast.
-Marginal MI (I proxy) is estimated via k-NN mutual information.
-
-Key predicted pattern:
-  | Var  | Role              | do-ATE | MI   | NS delta |
-  |------|-------------------|--------|------|----------|
-  | X1   | confounder proxy  | ~0     | >0   | >0       |
-  | X2   | confounder proxy  | ~0     | >0   | >0       |
-  | X3   | true cause        | >0     | >0   | >0       |
-  | X4   | redundant proxy   | ~0     | >0   | >0       |
-  | X5-8 | noise             | ~0     | ~0   | ~0       |
-
-The table exposes C != I != P: methods in P (and I) agree on four informative
-variables, but only do-calculus identifies X3 as the unique causal variable.
+The experiment now runs multiple observational/interventional seeds and stores
+both seed-level metric summaries and null-swap repeat/fold raw records. This
+supports uncertainty intervals over the constructed SCM example.
 """
 
 from __future__ import annotations
@@ -48,11 +23,13 @@ _REPO_ROOT = Path(__file__).resolve().parents[1]
 _DATA_DIR = _REPO_ROOT / "data" / "processed"
 _DATA_DIR.mkdir(parents=True, exist_ok=True)
 
-N_OBS = 4096          # observational sample size
-N_INT = 50_000        # samples per interventional estimate (large for precision)
+N_OBS = 4096
+N_INT = 50_000
+N_SEEDS = 20
 RANDOM_SEED = 42
+N_JOBS = -1
 P = 8
-FEATURE_NAMES = [f"X{i+1}" for i in range(P)]
+FEATURE_NAMES = [f"X{i + 1}" for i in range(P)]
 
 ROLES = {
     "X1": "confounder_proxy",
@@ -65,13 +42,9 @@ ROLES = {
     "X8": "noise",
 }
 
-CAUSAL_SET = {"X3"}    # variables in C
-INFO_SET = {"X1", "X2", "X3", "X4"}   # variables in I (expected)
+CAUSAL_SET = {"X3"}
+INFO_SET = {"X1", "X2", "X3", "X4"}
 
-
-# ---------------------------------------------------------------------------
-# SCM data generation
-# ---------------------------------------------------------------------------
 
 def sample_observational(n: int, seed: int = RANDOM_SEED) -> tuple[np.ndarray, np.ndarray]:
     """Sample from the observational distribution of the SCM."""
@@ -84,7 +57,7 @@ def sample_observational(n: int, seed: int = RANDOM_SEED) -> tuple[np.ndarray, n
     X_noise = rng.standard_normal((n, 4))
     X = np.column_stack([X1, X2, X3, X4, X_noise])
     eps_Y = rng.standard_normal(n)
-    logit = 1.0 * X3 + 1.0 * U + eps_Y
+    logit = X3 + U + eps_Y
     y = (logit > 0).astype(int)
     return X, y
 
@@ -96,55 +69,50 @@ def interventional_ate(
     n: int = N_INT,
     seed: int = RANDOM_SEED,
 ) -> float:
-    """Estimate ATE = E[Y|do(Xk=v_hi)] - E[Y|do(Xk=v_lo)] by simulation.
-
-    Implements do(Xk=v) by setting Xk=v and cutting its incoming edges.
-    For X1, X2, X4 the structural equation is replaced by X_k := v.
-    For X3 (true cause) similarly, but Y = 1[1.0*v + 1.0*U + eps > 0].
-    """
+    """Estimate ATE = E[Y|do(Xk=v_hi)] - E[Y|do(Xk=v_lo)]."""
     rng = np.random.default_rng(seed)
     U = rng.standard_normal(n)
     eps_Y = rng.standard_normal(n)
 
     def _y_under_do(v: float) -> np.ndarray:
-        # Set Xk=v for all units; U and eps_Y are shared across interventions
-        if k == 2:   # X3 (0-indexed): the true cause
+        if k == 2:
             x3_val = np.full(n, v)
         else:
-            x3_val = rng.standard_normal(n)  # X3 evolves freely
-        logit = 1.0 * x3_val + 1.0 * U + eps_Y
+            x3_val = rng.standard_normal(n)
+        logit = x3_val + U + eps_Y
         return (logit > 0).astype(float)
 
-    # For X3, do(X3=v_hi) vs do(X3=v_lo): different x3 values, same U and eps_Y
-    if k == 2:
-        y_hi = _y_under_do(v_hi)
-        y_lo = _y_under_do(v_lo)
-    else:
-        # For all other Xk: setting Xk does not enter Y's equation, so
-        # Y = 1[X3 + U + eps > 0] regardless.  ATE = 0 by construction.
-        y_hi = _y_under_do(v_hi)
-        y_lo = _y_under_do(v_lo)
-
+    y_hi = _y_under_do(v_hi)
+    y_lo = _y_under_do(v_lo)
     return float(y_hi.mean() - y_lo.mean())
 
 
-def compute_all_ates(v_hi: float = 1.0, v_lo: float = -1.0) -> pd.Series:
-    """Compute ATE for each observed variable via simulation."""
+def compute_all_ates_for_seed(
+    seed: int,
+    v_hi: float = 1.0,
+    v_lo: float = -1.0,
+) -> pd.Series:
+    """Compute ATE for each observed variable using seed-specific streams."""
     ates = {}
     for idx, name in enumerate(FEATURE_NAMES):
-        ate = interventional_ate(k=idx, v_hi=v_hi, v_lo=v_lo)
-        ates[name] = ate
-    return pd.Series(ates).round(4)
+        ates[name] = interventional_ate(
+            k=idx,
+            v_hi=v_hi,
+            v_lo=v_lo,
+            seed=seed + idx * 10_000,
+        )
+    return pd.Series(ates)
 
 
-# ---------------------------------------------------------------------------
-# Null-swap order-1 (P metric)
-# ---------------------------------------------------------------------------
+def run_nullswap_order1(
+    X: np.ndarray,
+    y: np.ndarray,
+    seed: int,
+) -> tuple[pd.Series, pd.DataFrame]:
+    """Return order-1 null-swap scores and repeat/fold raw records."""
+    from null_swap_core import compute_order_scores, explode_raw_deltas, make_logreg_estimator
 
-def run_nullswap_order1(X: np.ndarray, y: np.ndarray) -> pd.Series:
-    from null_swap_core import compute_order_scores, make_logreg_estimator
-
-    scores, _ = compute_order_scores(
+    scores, records = compute_order_scores(
         X,
         y,
         feature_names=FEATURE_NAMES,
@@ -152,59 +120,67 @@ def run_nullswap_order1(X: np.ndarray, y: np.ndarray) -> pd.Series:
         estimator_factory=make_logreg_estimator,
         n_repeats=5,
         n_folds=5,
-        random_seed=RANDOM_SEED,
-        n_jobs=-1,
+        random_seed=seed,
+        n_jobs=N_JOBS,
+        store_raw=True,
     )
-    return scores.round(4)
+    raw = explode_raw_deltas(records, n_repeats=5, n_folds=5)
+    return scores, raw
 
 
-# ---------------------------------------------------------------------------
-# Marginal MI (I proxy)
-# ---------------------------------------------------------------------------
-
-def compute_mi(X: np.ndarray, y: np.ndarray) -> pd.Series:
-    mi = mutual_info_classif(X, y, random_state=RANDOM_SEED, n_neighbors=15)
-    return pd.Series(mi, index=FEATURE_NAMES).round(4)
+def compute_mi(X: np.ndarray, y: np.ndarray, seed: int) -> pd.Series:
+    """Estimate marginal mutual information with seed-controlled kNN MI."""
+    mi = mutual_info_classif(X, y, random_state=seed, n_neighbors=15)
+    return pd.Series(mi, index=FEATURE_NAMES)
 
 
-# ---------------------------------------------------------------------------
-# Main experiment
-# ---------------------------------------------------------------------------
+def run_one_seed(seed: int) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """Run all SCM measurements for one seed."""
+    X, y = sample_observational(N_OBS, seed=seed)
+    print(f"    n={N_OBS}, p={P}, class balance: {y.mean():.3f}")
 
-def run_exp9() -> pd.DataFrame:
-    print("=== Exp 9: SCM causal-control — non-collapse of C, I, P ===")
-    X, y = sample_observational(N_OBS)
-    print(f"  n={N_OBS}, p={P}, class balance: {y.mean():.3f}")
+    print("    Computing ATEs via interventional simulation (do-calculus)...")
+    ates = compute_all_ates_for_seed(seed=seed)
 
-    print("  Computing ATEs via interventional simulation (do-calculus)...")
-    ates = compute_all_ates()
+    print("    Computing marginal MI (I proxy)...")
+    mi = compute_mi(X, y, seed=seed)
 
-    print("  Computing marginal MI (I proxy)...")
-    mi = compute_mi(X, y)
+    print("    Running null-swap order 1 (P)...")
+    ns_scores, ns_raw = run_nullswap_order1(X, y, seed=seed)
+    ns_raw["seed"] = seed
 
-    print("  Running null-swap order 1 (P)...")
-    ns_scores = run_nullswap_order1(X, y)
+    rows = []
+    for feature in FEATURE_NAMES:
+        rows.append({
+            "seed": seed,
+            "feature": feature,
+            "role": ROLES[feature],
+            "in_C": feature in CAUSAL_SET,
+            "in_I_expected": feature in INFO_SET,
+            "ATE_do": float(ates[feature]),
+            "MI_marginal": float(mi[feature]),
+            "NS_delta_order1": float(ns_scores[feature]),
+        })
+    return pd.DataFrame(rows), ns_raw
 
-    # Assemble results table
-    result = pd.DataFrame({
-        "feature": FEATURE_NAMES,
-        "role": [ROLES[f] for f in FEATURE_NAMES],
-        "in_C": [f in CAUSAL_SET for f in FEATURE_NAMES],
-        "in_I_expected": [f in INFO_SET for f in FEATURE_NAMES],
-        "ATE_do": [ates[f] for f in FEATURE_NAMES],
-        "MI_marginal": [mi[f] for f in FEATURE_NAMES],
-        "NS_delta_order1": [ns_scores[f] for f in FEATURE_NAMES],
-    })
 
-    out = _DATA_DIR / "exp9_scm_causal_control.csv"
-    result.to_csv(out, index=False)
-    print(f"\nSaved: {out}")
+def summarize_seed_results(seed_result: pd.DataFrame) -> pd.DataFrame:
+    """Build the backward-compatible mean table used by the manuscript."""
+    result = (
+        seed_result
+        .groupby(["feature", "role", "in_C", "in_I_expected"], as_index=False)
+        [["ATE_do", "MI_marginal", "NS_delta_order1"]]
+        .mean()
+    )
+    result[["ATE_do", "MI_marginal", "NS_delta_order1"]] = result[
+        ["ATE_do", "MI_marginal", "NS_delta_order1"]
+    ].round(4)
+    return result
 
-    print("\n-- C / I / P comparison table --")
-    print(result.to_string(index=False))
 
-    # Summary: classify each variable into the three categories
-    print("\n-- Category membership (empirical thresholds: MI > 0.02, NS > 0.01, ATE abs > 0.05) --")
+def print_membership_summary(result: pd.DataFrame) -> None:
+    """Print empirical C/I/P memberships using fixed thresholds."""
+    print("\n-- Category membership (thresholds: MI > 0.02, NS > 0.01, ATE abs > 0.05) --")
     thr_mi = 0.02
     thr_ns = 0.01
     thr_ate = 0.05
@@ -227,6 +203,37 @@ def run_exp9() -> pd.DataFrame:
             f"NS={row['NS_delta_order1']:.3f}  -> {membership}"
         )
 
+
+def run_exp9() -> pd.DataFrame:
+    print("=== Exp 9: SCM causal-control - non-collapse of C, I, P ===")
+    seed_tables = []
+    ns_raw_tables = []
+
+    for seed_ix in range(N_SEEDS):
+        seed = RANDOM_SEED + seed_ix
+        print(f"\n  seed {seed_ix + 1}/{N_SEEDS}: {seed}")
+        seed_table, ns_raw = run_one_seed(seed)
+        seed_tables.append(seed_table)
+        ns_raw_tables.append(ns_raw)
+
+    seed_result = pd.concat(seed_tables, ignore_index=True)
+    seed_out = _DATA_DIR / "exp9_scm_causal_control_seed_summary.csv"
+    seed_result.to_csv(seed_out, index=False)
+    print(f"\nSaved: {seed_out}")
+
+    ns_raw_result = pd.concat(ns_raw_tables, ignore_index=True)
+    ns_raw_out = _DATA_DIR / "exp9_scm_causal_control_ns_raw.csv"
+    ns_raw_result.to_csv(ns_raw_out, index=False)
+    print(f"Saved: {ns_raw_out}")
+
+    result = summarize_seed_results(seed_result)
+    out = _DATA_DIR / "exp9_scm_causal_control.csv"
+    result.to_csv(out, index=False)
+    print(f"Saved: {out}")
+
+    print("\n-- C / I / P comparison table --")
+    print(result.to_string(index=False))
+    print_membership_summary(result)
     return result
 
 

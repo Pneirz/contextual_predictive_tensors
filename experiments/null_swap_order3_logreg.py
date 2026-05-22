@@ -1,6 +1,6 @@
 """Null-swap order 1-3 with LogisticRegression estimator, fixed DGP subsampled.
 
-Same setup as null_swap_order3_v2.py but using LogisticRegression instead of
+Same setup as null_swap_order3_tree.py but using LogisticRegression instead of
 DecisionTreeClassifier. Tests whether model capacity (not structural order
 limitations) explains why redundants are not suppressed at order 3.
 
@@ -12,6 +12,7 @@ Results saved to data/processed/null_swap_order3_logreg.csv.
 
 from __future__ import annotations
 
+import ast
 from pathlib import Path
 
 import numpy as np
@@ -100,6 +101,13 @@ def explode_raw_deltas(rec: pd.DataFrame, n_repeats: int, n_folds: int) -> pd.Da
     return pd.DataFrame(rows)
 
 
+def context_feature_set(value: object) -> frozenset[str]:
+    """Return a context-feature set from an in-memory tuple or CSV string."""
+    if isinstance(value, str):
+        value = ast.literal_eval(value)
+    return frozenset(value)
+
+
 def run_experiment() -> None:
     print(f"Generating full dataset: n={N_FULL}, seed={RANDOM_SEED}")
     X_full, y_full, feature_names, ground_truth = generate_full_dataset()
@@ -141,7 +149,7 @@ def run_experiment() -> None:
     print("\n=== Key informative combinations (other 2 inf as context), order 3 ===")
     inf = {"f00", "f01", "f02"}
     o3 = df[df["order"] == 3].copy()
-    o3["ctx_set"] = o3["context_features"].apply(lambda x: frozenset(eval(x)))
+    o3["ctx_set"] = o3["context_features"].apply(context_feature_set)
     for n in SAMPLE_SIZES:
         print(f"\n  n={n}:")
         sub = o3[o3["n_samples"] == n]

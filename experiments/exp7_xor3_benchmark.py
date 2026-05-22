@@ -1,4 +1,4 @@
-"""Experiment 7: Pure XOR3 benchmark — third-order contextual complementarity.
+"""Experiment 7: Pure XOR3 benchmark: third-order contextual complementarity.
 
 DGP (p=10, n=4096):
   X1, X2, X3  : XOR3-informative (sign-thresholded Gaussians)
@@ -13,14 +13,15 @@ Information-theoretic properties (exact):
   I(Y; X_k | X_l, X_m)   = log(2) for {k,l,m} = {1,2,3}  (pure third-order CMI)
 
 Expected null-swap behaviour:
-  Order 1 : delta ≈ 0 for X1, X2, X3
-  Order 2 : delta ≈ 0 for X1, X2, X3 regardless of context
+  Order 1 : delta approximately 0 for X1, X2, X3
+  Order 2 : delta approximately 0 for X1, X2, X3 regardless of context
   Order 3 : delta >> 0 for X_k with context {X_l, X_m}, {k,l,m} = {1,2,3}
-             delta ≈ 0 for noise features at all orders
+             delta approximately 0 for noise features at all orders
 """
 
 from __future__ import annotations
 
+import os
 from pathlib import Path
 
 import numpy as np
@@ -32,6 +33,7 @@ _DATA_DIR.mkdir(parents=True, exist_ok=True)
 
 N = 4096
 RANDOM_SEED = 42
+N_JOBS = int(os.environ.get("NULL_SWAP_N_JOBS", "-1"))
 P = 10
 FEATURE_NAMES = [f"X{i+1}" for i in range(P)]
 INFORMATIVE_IDX = [0, 1, 2]
@@ -75,7 +77,11 @@ def run_nullswap_orders(
     y: np.ndarray,
     orders: list[int],
 ) -> pd.DataFrame:
-    from null_swap_core import compute_order_scores, make_decision_tree_estimator
+    from null_swap_core import (
+        compute_order_scores,
+        explode_raw_deltas,
+        make_decision_tree_estimator,
+    )
 
     all_records = []
     for order in orders:
@@ -89,11 +95,12 @@ def run_nullswap_orders(
             n_repeats=5,
             n_folds=5,
             random_seed=RANDOM_SEED,
-            n_jobs=-1,
+            n_jobs=N_JOBS,
+            store_raw=True,
         )
-        records = records.copy()
-        records["order"] = order
-        all_records.append(records)
+        raw_records = explode_raw_deltas(records, n_repeats=5, n_folds=5)
+        raw_records["order"] = order
+        all_records.append(raw_records)
 
     return pd.concat(all_records, ignore_index=True)
 

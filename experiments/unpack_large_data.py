@@ -27,7 +27,7 @@ def unpack_archive(archive: Path) -> None:
 
 def main() -> None:
     for name in [
-        "null_swap_order3_v2.csv.zip",
+        "null_swap_order3_tree.csv.zip",
         "null_swap_order3_logreg.csv.zip",
     ]:
         unpack_archive(ARCHIVE_DIR / name)

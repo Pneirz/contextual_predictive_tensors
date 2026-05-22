@@ -288,6 +288,33 @@ def compute_order_scores(
     return scores, records
 
 
+def explode_raw_deltas(records: pd.DataFrame, n_repeats: int, n_folds: int) -> pd.DataFrame:
+    """Expand a records DataFrame with raw_deltas into repeat/fold rows."""
+    if "raw_deltas" not in records.columns:
+        raise ValueError("records must include a raw_deltas column")
+
+    rows = []
+    passthrough = [
+        col for col in records.columns
+        if col not in {"raw_deltas", "delta"}
+    ]
+    for _, record in records.iterrows():
+        raw = record["raw_deltas"]
+        if len(raw) != n_repeats * n_folds:
+            raise ValueError(
+                "raw_deltas length does not match n_repeats * n_folds "
+                f"for target {record.get('target_feature', record.get('target_idx'))}"
+            )
+        for i, delta in enumerate(raw):
+            row = {col: record[col] for col in passthrough}
+            row["repeat"] = i // n_folds
+            row["fold"] = i % n_folds
+            row["delta"] = float(delta)
+            rows.append(row)
+
+    return pd.DataFrame(rows)
+
+
 def build_order2_matrix(records: pd.DataFrame, feature_names: list[str]) -> pd.DataFrame:
     """Convert order-2 task records into the usual context-target matrix."""
     matrix = pd.DataFrame(np.nan, index=feature_names, columns=feature_names)

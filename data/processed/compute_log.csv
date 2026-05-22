@@ -1,0 +1,26 @@
+timestamp_utc,command,returncode,wall_seconds,python_version,platform,cpu_count,memory_gib
+2026-05-21T01:23:58Z,python experiments\exp8_logloss_consistency.py,0,8.488,3.12.10,Windows-11-10.0.26200-SP0,20,31.72
+2026-05-21T01:24:23Z,"python -c import sys; sys.path.insert(0, 'experiments'); import exp9_scm_causal_control as e; e.N_JOBS=1; e.run_exp9()",0,18.868,3.12.10,Windows-11-10.0.26200-SP0,20,31.72
+2026-05-21T01:31:41Z,python experiments\null_swap_orders_monks1.py,0,4.953,3.12.10,Windows-11-10.0.26200-SP0,20,31.72
+2026-05-21T01:37:23Z,"python -c import sys; sys.path.insert(0, 'experiments'); import exp7_xor3_benchmark as e; e.N_JOBS=1; e.run_exp7()",0,335.73,3.12.10,Windows-11-10.0.26200-SP0,20,31.72
+2026-05-21T01:37:41Z,python experiments\summarize_uncertainty.py --files null_swap_monks1_raw.csv exp7_xor3_records.csv exp8_logloss_consistency_raw.csv exp9_scm_causal_control_ns_raw.csv --n-bootstrap 2000 --output data\processed\uncertainty_summary.csv,0,4.099,3.12.10,Windows-11-10.0.26200-SP0,20,31.72
+2026-05-21T01:39:17Z,python experiments\summarize_uncertainty.py --files null_swap_order3_tree.csv --n-bootstrap 2000 --output data\processed\uncertainty_order3_tree.csv,0,40.581,3.12.10,Windows-11-10.0.26200-SP0,20,31.72
+2026-05-21T01:39:41Z,python experiments\summarize_uncertainty.py --files null_swap_wdbc.csv --n-bootstrap 2000 --output data\processed\uncertainty_wdbc.csv,0,14.861,3.12.10,Windows-11-10.0.26200-SP0,20,31.72
+2026-05-21T01:40:26Z,python experiments\summarize_uncertainty.py --files null_swap_order3_logreg.csv --n-bootstrap 2000 --output data\processed\uncertainty_order3_logreg.csv,0,39.874,3.12.10,Windows-11-10.0.26200-SP0,20,31.72
+2026-05-21T01:46:15Z,python experiments\exp6_mixed_dgp.py,1,11.783,3.12.10,Windows-11-10.0.26200-SP0,20,31.72
+2026-05-21T01:46:34Z,"python -c import sys; sys.path.insert(0, 'experiments'); import exp6_mixed_dgp as e; e.N_JOBS=1; e.run_exp6()",1,0.028,3.12.10,Windows-11-10.0.26200-SP0,20,31.72
+2026-05-21T05:33:42Z,python experiments\exp6_mixed_dgp.py,1,13592.96,3.12.10,Windows-11-10.0.26200-SP0,20,31.72
+2026-05-21T05:34:56Z,python experiments\summarize_uncertainty.py --files exp6_mixed_dgp_ns_raw.csv --n-bootstrap 2000 --output data\processed\uncertainty_exp6_mixed_dgp.csv,0,1.337,3.12.10,Windows-11-10.0.26200-SP0,20,31.72
+2026-05-21T14:03:35Z,python experiments\exp6_mixed_dgp.py,0,1965.972,3.12.10,Windows-11-10.0.26200-SP0,20,31.72
+2026-05-21T14:04:04Z,python experiments\summarize_uncertainty.py --files exp6_mixed_dgp_ns_raw.csv --n-bootstrap 2000 --output data\processed\uncertainty_exp6_mixed_dgp.csv,0,4.827,3.12.10,Windows-11-10.0.26200-SP0,20,31.72
+2026-05-21T14:21:17Z,python experiments\exp5_sota_comparison.py,0,1037.205,3.12.10,Windows-11-10.0.26200-SP0,20,31.72
+2026-05-21T14:57:45Z,python experiments\null_swap_order3_logreg.py,0,1963.167,3.12.10,Windows-11-10.0.26200-SP0,20,31.72
+2026-05-21T15:10:49Z,python experiments\null_swap_orders_wdbc.py,0,358.416,3.12.10,Windows-11-10.0.26200-SP0,20,31.72
+2026-05-21T17:37:00Z,python experiments\null_swap_order3_tree.py,0,8557.548,3.12.10,Windows-11-10.0.26200-SP0,20,31.72
+2026-05-21T17:37:43Z,python experiments\summarize_uncertainty.py --files null_swap_wdbc.csv --n-bootstrap 2000 --output data\processed\uncertainty_wdbc.csv,0,16.353,3.12.10,Windows-11-10.0.26200-SP0,20,31.72
+2026-05-21T17:38:09Z,python experiments\summarize_uncertainty.py --files null_swap_order3_tree.csv --n-bootstrap 2000 --output data\processed\uncertainty_order3_tree.csv,0,42.553,3.12.10,Windows-11-10.0.26200-SP0,20,31.72
+2026-05-21T17:38:12Z,python experiments\summarize_uncertainty.py --files null_swap_order3_logreg.csv --n-bootstrap 2000 --output data\processed\uncertainty_order3_logreg.csv,0,45.332,3.12.10,Windows-11-10.0.26200-SP0,20,31.72
+2026-05-21T18:03:38Z,python experiments\outer_seed_uq.py --n-seeds 20,0,1420.712,3.12.10,Windows-11-10.0.26200-SP0,20,31.72
+2026-05-21T18:03:47Z,python experiments\summarize_uncertainty.py --files outer_seed_uq_raw.csv --n-bootstrap 2000 --output data\processed\outer_seed_uq_summary.csv,0,0.546,3.12.10,Windows-11-10.0.26200-SP0,20,31.72
+2026-05-22T02:05:54Z,python experiments\outer_seed_uq_resumable.py --n-seeds 100,0,7134.379,3.12.10,Windows-11-10.0.26200-SP0,20,31.72
+2026-05-22T02:06:33Z,python experiments\summarize_uncertainty.py --files outer_seed_uq_raw_long.csv --n-bootstrap 5000 --output data\processed\outer_seed_uq_summary_long.csv,0,3.953,3.12.10,Windows-11-10.0.26200-SP0,20,31.72

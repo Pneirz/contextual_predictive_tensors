@@ -15,6 +15,7 @@ MI and mRMR are model-free filter baselines.
 
 from __future__ import annotations
 
+import os
 from pathlib import Path
 
 import matplotlib
@@ -44,6 +45,7 @@ _FIG_DIR.mkdir(parents=True, exist_ok=True)
 N = 4096
 BETA1 = 1.0
 BETA23 = 2.0
+N_JOBS = int(os.environ.get("NULL_SWAP_N_JOBS", "-1"))
 FEATURE_NAMES = [f"X{i+1}" for i in range(15)]
 GROUND_TRUTH = {
     "X1": "informative",
@@ -104,9 +106,10 @@ def make_rf_estimator(random_state: int) -> RandomForestClassifier:
 
 
 def run_nullswap(X: np.ndarray, y: np.ndarray) -> pd.DataFrame:
-    from null_swap_core import compute_order_scores
+    from null_swap_core import compute_order_scores, explode_raw_deltas
 
     all_records = []
+    all_raw = []
     for order in [1, 2, 3]:
         print(f"  null-swap order {order}...")
         _, records = compute_order_scores(
@@ -117,13 +120,20 @@ def run_nullswap(X: np.ndarray, y: np.ndarray) -> pd.DataFrame:
             n_repeats=5,
             n_folds=5,
             random_seed=RANDOM_SEED,
-            n_jobs=-1,
-            store_raw=False,
+            n_jobs=N_JOBS,
+            store_raw=True,
         )
         records = records.copy()
         records["order"] = order
         all_records.append(records)
+        raw = explode_raw_deltas(records, n_repeats=5, n_folds=5)
+        raw["order"] = order
+        all_raw.append(raw)
 
+    raw_records = pd.concat(all_raw, ignore_index=True)
+    raw_out = _DATA_DIR / "exp6_mixed_dgp_ns_raw.csv"
+    raw_records.to_csv(raw_out, index=False)
+    print(f"Saved: {raw_out}")
     return pd.concat(all_records, ignore_index=True)
 
 

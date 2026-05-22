@@ -15,8 +15,9 @@ venv/
 
 # Generated large CSVs. Versioned compressed copies live in data/large_archives/.
 data/processed/null_swap_order3_logreg.csv
-data/processed/null_swap_order3_v2.csv
+data/processed/null_swap_order3_tree.csv
 
 # Local scratch outputs
 tmp/
 scratch/
+data/processed/outer_seed_uq_chunks/

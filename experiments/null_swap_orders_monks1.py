@@ -9,6 +9,7 @@ import pandas as pd
 from null_swap_core import (
     build_order2_matrix,
     compute_order_scores,
+    explode_raw_deltas,
     make_decision_tree_estimator,
 )
 
@@ -63,7 +64,7 @@ def run_experiment() -> None:
     print(f"  Shape: {X.shape}")
 
     print("\nRunning order 1...")
-    scores_o1, _ = compute_order_scores(
+    scores_o1, records_o1 = compute_order_scores(
         X=X,
         y=y,
         feature_names=feature_names,
@@ -73,6 +74,7 @@ def run_experiment() -> None:
         n_folds=N_FOLDS,
         random_seed=RANDOM_SEED,
         n_jobs=1,
+        store_raw=True,
     )
 
     print("\nRunning order 2...")
@@ -86,8 +88,28 @@ def run_experiment() -> None:
         n_folds=N_FOLDS,
         random_seed=RANDOM_SEED,
         n_jobs=1,
+        store_raw=True,
     )
     matrix_o2 = build_order2_matrix(records_o2, feature_names)
+
+    raw_o1 = explode_raw_deltas(records_o1, N_REPEATS, N_FOLDS)
+    raw_o2 = explode_raw_deltas(records_o2, N_REPEATS, N_FOLDS)
+    raw = pd.concat([raw_o1, raw_o2], ignore_index=True)
+    raw["ground_truth"] = raw["target_feature"].map(ground_truth)
+    raw = raw[[
+        "order",
+        "context_indices",
+        "target_idx",
+        "context_size",
+        "target_feature",
+        "ground_truth",
+        "context_features",
+        "repeat",
+        "fold",
+        "delta",
+    ]]
+    raw.to_csv(_DATA_DIR / "null_swap_monks1_raw.csv", index=False)
+    print("  Saved: data/null_swap_monks1_raw.csv")
 
     summary = pd.DataFrame(
         {

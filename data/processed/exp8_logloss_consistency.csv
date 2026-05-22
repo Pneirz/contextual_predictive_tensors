@@ -1,22 +1,22 @@
 n,protocol,loss,calibrated,delta_mean,delta_std
-200,DT + RMSE,rmse,False,0.50375,0.04339
-200,DT + log-loss,logloss,False,0.70466,0.089
-200,DT + log-loss (calibrated),logloss,True,0.69958,0.0703
-400,DT + RMSE,rmse,False,0.50096,0.02625
-400,DT + log-loss,logloss,False,0.69653,0.05357
-400,DT + log-loss (calibrated),logloss,True,0.69182,0.05003
-800,DT + RMSE,rmse,False,0.50086,0.01901
-800,DT + log-loss,logloss,False,0.69566,0.03829
-800,DT + log-loss (calibrated),logloss,True,0.69599,0.03506
-1600,DT + RMSE,rmse,False,0.50042,0.01437
-1600,DT + log-loss,logloss,False,0.69439,0.02883
-1600,DT + log-loss (calibrated),logloss,True,0.69092,0.02088
-3200,DT + RMSE,rmse,False,0.4971,0.01045
-3200,DT + log-loss,logloss,False,0.68759,0.02083
-3200,DT + log-loss (calibrated),logloss,True,0.68921,0.01689
-6400,DT + RMSE,rmse,False,0.50061,0.00724
-6400,DT + log-loss,logloss,False,0.69448,0.01453
-6400,DT + log-loss (calibrated),logloss,True,0.69419,0.01106
-12800,DT + RMSE,rmse,False,0.4997,0.00527
-12800,DT + log-loss,logloss,False,0.69261,0.01052
-12800,DT + log-loss (calibrated),logloss,True,0.69311,0.00958
+200,DT + RMSE,rmse,False,0.50375,0.04383
+200,DT + log-loss,logloss,False,0.70466,0.0899
+200,DT + log-loss (calibrated),logloss,True,0.69958,0.07101
+400,DT + RMSE,rmse,False,0.50096,0.02651
+400,DT + log-loss,logloss,False,0.69653,0.05411
+400,DT + log-loss (calibrated),logloss,True,0.69182,0.05053
+800,DT + RMSE,rmse,False,0.50086,0.0192
+800,DT + log-loss,logloss,False,0.69566,0.03868
+800,DT + log-loss (calibrated),logloss,True,0.69599,0.03542
+1600,DT + RMSE,rmse,False,0.50042,0.01451
+1600,DT + log-loss,logloss,False,0.69439,0.02912
+1600,DT + log-loss (calibrated),logloss,True,0.69092,0.02109
+3200,DT + RMSE,rmse,False,0.4971,0.01056
+3200,DT + log-loss,logloss,False,0.68759,0.02104
+3200,DT + log-loss (calibrated),logloss,True,0.68921,0.01706
+6400,DT + RMSE,rmse,False,0.50061,0.00731
+6400,DT + log-loss,logloss,False,0.69448,0.01468
+6400,DT + log-loss (calibrated),logloss,True,0.69419,0.01117
+12800,DT + RMSE,rmse,False,0.4997,0.00532
+12800,DT + log-loss,logloss,False,0.69261,0.01062
+12800,DT + log-loss (calibrated),logloss,True,0.69311,0.00968
