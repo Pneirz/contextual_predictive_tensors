@@ -20,3 +20,4 @@ data/processed/null_swap_order3_tree.csv
 # Local scratch outputs
 tmp/
 scratch/
+data/processed/outer_seed_uq_chunks/

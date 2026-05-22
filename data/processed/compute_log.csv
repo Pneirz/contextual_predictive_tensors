@@ -22,3 +22,5 @@ timestamp_utc,command,returncode,wall_seconds,python_version,platform,cpu_count,
 2026-05-21T17:38:12Z,python experiments\summarize_uncertainty.py --files null_swap_order3_logreg.csv --n-bootstrap 2000 --output data\processed\uncertainty_order3_logreg.csv,0,45.332,3.12.10,Windows-11-10.0.26200-SP0,20,31.72
 2026-05-21T18:03:38Z,python experiments\outer_seed_uq.py --n-seeds 20,0,1420.712,3.12.10,Windows-11-10.0.26200-SP0,20,31.72
 2026-05-21T18:03:47Z,python experiments\summarize_uncertainty.py --files outer_seed_uq_raw.csv --n-bootstrap 2000 --output data\processed\outer_seed_uq_summary.csv,0,0.546,3.12.10,Windows-11-10.0.26200-SP0,20,31.72
+2026-05-22T02:05:54Z,python experiments\outer_seed_uq_resumable.py --n-seeds 100,0,7134.379,3.12.10,Windows-11-10.0.26200-SP0,20,31.72
+2026-05-22T02:06:33Z,python experiments\summarize_uncertainty.py --files outer_seed_uq_raw_long.csv --n-bootstrap 5000 --output data\processed\outer_seed_uq_summary_long.csv,0,3.953,3.12.10,Windows-11-10.0.26200-SP0,20,31.72

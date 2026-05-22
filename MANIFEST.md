@@ -9,6 +9,7 @@ This manifest maps each experiment family to the files kept in this repository.
 - Compute logger: `experiments/run_with_compute_log.py`
 - Uncertainty summarizer: `experiments/summarize_uncertainty.py`
 - Targeted outer-seed UQ: `experiments/outer_seed_uq.py`
+- Resumable targeted outer-seed UQ: `experiments/outer_seed_uq_resumable.py`
 - Artifact metadata: `ARTIFACT_CARD.md`, `COMPUTE.md`, `UNCERTAINTY_PLAN.md`, `THIRD_PARTY_ASSETS.md`, `LICENSE`
 
 ## Experiment artifacts
@@ -58,15 +59,17 @@ This manifest maps each experiment family to the files kept in this repository.
    - Raw UQ outputs: `data/processed/exp9_scm_causal_control_seed_summary.csv`, `data/processed/exp9_scm_causal_control_ns_raw.csv`
 
 9. Targeted outer-seed UQ
-   - Script: `experiments/outer_seed_uq.py`
+   - Scripts: `experiments/outer_seed_uq.py`, `experiments/outer_seed_uq_resumable.py`
    - Raw output: `data/processed/outer_seed_uq_raw.csv`
    - Summary: `data/processed/outer_seed_uq_summary.csv`
-   - Scope: prespecified XOR3, XOR2 log-loss, and mixed-DGP tensor entries over 20 dataset seeds
+   - Long rerun raw output: `data/processed/outer_seed_uq_raw_long.csv`
+   - Long rerun summary: `data/processed/outer_seed_uq_summary_long.csv`
+   - Scope: prespecified XOR3, XOR2 log-loss, and mixed-DGP tensor entries over 20 dataset seeds for the short run and 100 dataset seeds for the long resumable run
 
 10. Uncertainty summaries
    - Script: `experiments/summarize_uncertainty.py`
    - Data: `data/processed/uncertainty_summary.csv` for targeted MONK-1, XOR3, log-loss, and SCM null-swap intervals
-   - Large-table summaries: `data/processed/outer_seed_uq_summary.csv`, `data/processed/uncertainty_exp6_mixed_dgp.csv`, `data/processed/uncertainty_order3_tree.csv`, `data/processed/uncertainty_order3_logreg.csv`, `data/processed/uncertainty_wdbc.csv`
+   - Large-table summaries: `data/processed/outer_seed_uq_summary.csv`, `data/processed/outer_seed_uq_summary_long.csv`, `data/processed/uncertainty_exp6_mixed_dgp.csv`, `data/processed/uncertainty_order3_tree.csv`, `data/processed/uncertainty_order3_logreg.csv`, `data/processed/uncertainty_wdbc.csv`
    - Seed metric data: `data/processed/uncertainty_seed_metrics.csv` when seed-summary inputs exist
    - Current input coverage can be selected with `--files`; use targeted files for manuscript tables and `--files` omitted for a full raw-output sweep
 
@@ -82,3 +85,4 @@ This manifest maps each experiment family to the files kept in this repository.
 - Old bundle archives
 - Generated PDFs and intermediate build outputs
 - Uncompressed order-3 CSVs larger than 100 MB
+- Local outer-seed chunk files, because the combined 100-seed raw CSV is versioned

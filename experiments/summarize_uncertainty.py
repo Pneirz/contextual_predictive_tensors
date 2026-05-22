@@ -23,6 +23,7 @@ RAW_FILES = [
     "exp8_logloss_consistency_raw.csv",
     "exp9_scm_causal_control_ns_raw.csv",
     "outer_seed_uq_raw.csv",
+    "outer_seed_uq_raw_long.csv",
 ]
 
 SEED_METRIC_FILES = {
@@ -156,6 +157,14 @@ def main() -> None:
         default=None,
         help="Optional raw CSV filenames to summarize instead of the default list.",
     )
+    parser.add_argument(
+        "--include-seed-metrics",
+        action="store_true",
+        help=(
+            "Also summarize configured seed-metric files. By default this is "
+            "only done for a full raw-file sweep, not for targeted --files runs."
+        ),
+    )
     args = parser.parse_args()
 
     summaries = []
@@ -176,18 +185,19 @@ def main() -> None:
     out.to_csv(args.output, index=False)
     print(f"Saved: {args.output}")
 
-    metric_summaries = []
-    for name, metric_cols in SEED_METRIC_FILES.items():
-        path = DATA_DIR / name
-        if path.exists():
-            print(f"Summarizing seed metrics in {name}...")
-            metric_summaries.append(
-                summarize_seed_metric_file(path, metric_cols, args.n_bootstrap, args.seed)
-            )
-    if metric_summaries:
-        metric_out = args.output.with_name("uncertainty_seed_metrics.csv")
-        pd.concat(metric_summaries, ignore_index=True).to_csv(metric_out, index=False)
-        print(f"Saved: {metric_out}")
+    if args.include_seed_metrics or args.files is None:
+        metric_summaries = []
+        for name, metric_cols in SEED_METRIC_FILES.items():
+            path = DATA_DIR / name
+            if path.exists():
+                print(f"Summarizing seed metrics in {name}...")
+                metric_summaries.append(
+                    summarize_seed_metric_file(path, metric_cols, args.n_bootstrap, args.seed)
+                )
+        if metric_summaries:
+            metric_out = args.output.with_name("uncertainty_seed_metrics.csv")
+            pd.concat(metric_summaries, ignore_index=True).to_csv(metric_out, index=False)
+            print(f"Saved: {metric_out}")
 
 
 if __name__ == "__main__":

@@ -63,6 +63,7 @@ python experiments/exp7_xor3_benchmark.py
 python experiments/exp8_logloss_consistency.py
 python experiments/exp9_scm_causal_control.py
 python experiments/outer_seed_uq.py --n-seeds 20
+python experiments/outer_seed_uq_resumable.py --n-seeds 100
 ```
 
 The order-3 and WDBC scripts are the expensive runs. The current generated CSVs
@@ -87,6 +88,13 @@ For targeted manuscript-table intervals, pass only the relevant raw files:
 python experiments/summarize_uncertainty.py --files exp8_logloss_consistency_raw.csv exp9_scm_causal_control_ns_raw.csv
 ```
 
+For the stronger DGP-level interval checks used in the current manuscript,
+summarize the 100-seed resumable rerun:
+
+```bash
+python experiments/summarize_uncertainty.py --files outer_seed_uq_raw_long.csv --n-bootstrap 5000 --output data/processed/outer_seed_uq_summary_long.csv
+```
+
 Current manuscript interval summaries are stored as:
 
 - `data/processed/uncertainty_summary.csv` for MONK-1, XOR3, log-loss, and SCM null-swap raw records.
@@ -96,6 +104,7 @@ Current manuscript interval summaries are stored as:
 - `data/processed/uncertainty_wdbc.csv` for WDBC contextual activation candidates.
 - `data/processed/uncertainty_seed_metrics.csv` for SCM ATE/MI/null-swap seed-bootstrap summaries.
 - `data/processed/outer_seed_uq_raw.csv` and `data/processed/outer_seed_uq_summary.csv` for targeted 20-seed DGP-level checks.
+- `data/processed/outer_seed_uq_raw_long.csv` and `data/processed/outer_seed_uq_summary_long.csv` for targeted 100-seed DGP-level checks.
 
 ## Licensing
 

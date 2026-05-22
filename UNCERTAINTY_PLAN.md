@@ -64,6 +64,9 @@ observational dataset, and label WDBC activation results as exploratory.
 - Targeted outer-seed UQ has been generated in `outer_seed_uq_raw.csv` and
   `outer_seed_uq_summary.csv` for prespecified XOR3, XOR2 log-loss, and
   mixed-DGP entries over 20 dataset seeds.
+- A stronger resumable targeted rerun has been generated in
+  `outer_seed_uq_raw_long.csv` and `outer_seed_uq_summary_long.csv` for the
+  same prespecified entries over 100 dataset seeds.
 - `run_with_compute_log.py` records wall-clock time and environment metadata for
   reruns.
 
@@ -85,8 +88,8 @@ observational dataset, and label WDBC activation results as exploratory.
 
 ## Rerun Priorities
 
-1. Decide which outer-seed results should enter the main manuscript versus the
-   supplement. The artifact now contains the 20-seed summaries.
+1. Use the 100-seed targeted outer-seed summary for DGP-level manuscript
+   claims; keep the 20-seed file as a cheaper smoke reproducibility target.
 2. Recompute paper tables after any additional outer-seed reruns.
 3. Keep the previous descriptive standard deviations in supplemental CSVs, but
    remove ambiguity in the main paper tables.

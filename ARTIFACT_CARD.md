@@ -49,8 +49,11 @@ reported as conditional on the selected context and are not multiplicity
 adjusted.
 
 The targeted outer-seed checks are in `outer_seed_uq_raw.csv` and
-`outer_seed_uq_summary.csv`. Broader full-tensor outer-seed reruns remain out
-of scope because their combinatorial cost is substantially larger.
+`outer_seed_uq_summary.csv`. The stronger 100-seed rerun used for DGP-level
+manuscript claims is stored in `outer_seed_uq_raw_long.csv` and
+`outer_seed_uq_summary_long.csv`; it was generated with the resumable runner
+`experiments/outer_seed_uq_resumable.py`. Broader full-tensor outer-seed reruns
+remain out of scope because their combinatorial cost is substantially larger.
 
 ## Ethics and Privacy
 
